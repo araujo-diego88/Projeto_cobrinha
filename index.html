@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang=”pt-br”>
+<head>
+
+	<meta charset=”UTF-8” />
+	<link rel='stylesheet' type='text/css'	href='estilo.css'>
+	<title>"Jogo da Cobrinha"</title>
+	
+</head>
+<body>
+
+<h1><center><font color="#FFFAFA">Jogo da Cobrinha</font></center> </h1>
+<marquee>
+<h1><font face="times new roman" Color="white"</h1>Diego, Mylton e Camila
+</marquee>
+
+<div class="scoreDisplay"></div>
+<div class="grid"></div>
+<div class="popup"><center>
+     <button class="playAgain">Jogar Novamente</button> 
+		</center>
+		</div>
+<style>
+body {  
+       
+  background-image: url(assombrado.jpg);
+  text-shadow: white 0px 0px 2px;
+  background-size: 1750px;  
+
+      }      
+.grid {
+        background: rgba(53, 52, 52, 0.7) url(fundo.jpg); /* fundo do jogo*/
+		background-blend-mode:darken; 
+        width: 400px;
+        height	: 400px;
+        border: 2px solid black;
+        margin: 0 auto;
+        display: flex;
+        flex-wrap: wrap;
+      }
+      .grid div {
+        width: 40px;
+        height: 40px;
+      /*  border:1px black solid;
+		box-sizing:border-box;*/
+      }
+      .snake {
+        background: linear-gradient(rgb(220,220,220), rgb(248,248,255));
+		transform: scale(1.02);      }
+      .apple {
+        background: url(cav.png);
+		background-size: 40px;
+        border-radius: 30px;		
+      }
+      .popup {
+        background: rgb(220, 220, 220);
+        width: 34vw;
+        height: 100px;
+		position: absolute;
+		top: 35%;
+		left: 33%;
+		display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+	  .scoreDisplay {
+		background: rgb ( 123 , 104 , 238);
+        width: 150px;
+        height: 100px;  
+		position: absolute;
+		top: 59px;
+    	right: 140px;
+		color: rgb(255, 255, 255);
+    	font-size: 25px;
+		text-align: center;
+    	font-weight: bold;
+    	font-family: 'New Tegomin', serif;
+	  }
+	  
+</style>
+	
+	<script>
+	
+	let grid = document.querySelector(".grid") 
+	let popup = document.querySelector(".popup"); 
+	let playAgain = document.querySelector(".playAgain"); 
+	let scoreDisplay = document.querySelector(".scoreDisplay") 
+	let left = document.querySelector(".left") 
+	let bottom = document.querySelector(".bottom") 
+	let right = document.querySelector(".right") 
+	let up = document.querySelector(".top") 
+	let width=10; 
+	let currentIndex = 0 
+	let appleIndex=0 
+	let currentSnake=[2,1,0] 
+	let direction =1 
+	let score = 0 
+	let speed = 0.8 
+	let intervalTime =0 
+	let interval =0
+	let movements = new Audio;
+	movements.src = 'movements.mp3';
+	let dead = new Audio;
+	dead.src = 'dead.mp3';
+	let music = new Audio;
+	music.src = 'music.mp3';
+
+	
+	document.addEventListener("DOMContentLoaded",function(){ 
+	document.addEventListener("keyup",control) 
+	createBoard() 
+	startGame() 
+	playAgain.addEventListener("click", replay); 
+	})
+
+	//createboard function
+	function createBoard(){ 
+		popup.style.display = "none"; 
+		for(let i=0;i<100;i++){
+		let div =document.createElement("div") 
+		grid.appendChild(div) 
+		}
+	} 
+
+	//startgame function
+	function startGame(){ 
+	let squares =document.querySelectorAll(".grid div") 
+	randomApple(squares) 
+		//random apple 
+		direction =1 
+		scoreDisplay.innerHTML=score 
+		intervalTime=1000 
+		currentSnake =[2,1,0] 
+		currentIndex = 0 
+		currentSnake.forEach(index=>squares[index].classList.add("snake")) 
+	    interval = setInterval(moveOutcome,intervalTime) 
+		
+	
+	} 
+
+	function moveOutcome (){ 
+		let squares =document.querySelectorAll(".grid div") 
+		if(checkForHits(squares)){
+		alert("Voce perdeu!") 
+		popup.style.display="flex" 
+		return clearInterval(interval) 
+		}else{ 
+		moveSnake(squares) 
+		}
+	} 
+
+	function sound(){
+		
+		music.play()
+	}
+
+
+	function moveSnake(squares){
+		let tail = currentSnake.pop() 
+		squares[tail].classList.remove("snake") 
+		currentSnake.unshift(currentSnake[0]+direction) 
+		// movement ends here  
+		eatApple(squares,tail)  
+		squares[currentSnake[0]].classList.add("snake")  
+	}
+
+	function checkForHits(squares){  
+		
+		if( (currentSnake[0] + width >=(width*width) && direction === width) ||
+			(currentSnake[0] % width ===width -1 && direction ===1) ||   
+			(currentSnake[0] % width === 0 && direction === -1) ||   
+			(currentSnake[0] - width <= 0 && direction === -width) ||
+			squares[currentSnake[0] + direction].classList.contains("snake")   
+			){ 
+				music.pause();
+				dead.play();
+				return true 
+				
+		}else{  
+			
+			return false 
+		}
+	}  
+	
+	function eatApple(squares,tail){ 
+		let eat = new Audio;
+		eat.src = 'eat.mp3';
+		if(squares[currentSnake[0]].classList.contains("apple")){ 
+			eat.play();
+			squares[currentSnake[0]].classList.remove("apple") 
+			squares[tail].classList.add("snake") 
+			currentSnake.push(tail)
+			randomApple(squares) 
+			score++ 
+			scoreDisplay.textContent = "Pontos: " + score  
+			clearInterval(interval) 
+			intervalTime = intervalTime *speed 
+			interval = setInterval(moveOutcome,intervalTime) 
+		}
+	} 
+
+
+	function randomApple(squares){ 
+		do{ 
+			appleIndex =Math.floor(Math.random() * squares.length) 
+		}while(squares[appleIndex].classList.contains("snake")) 
+			squares[appleIndex].classList.add("apple") 
+	} 
+
+	function control(e){ 
+			if (e.keyCode === 39) {
+				direction = 1 // right 
+			} else if (e.keyCode === 38) {
+				direction = -width //if we press the up arrow, the snake will go ten divs up
+			} else if (e.keyCode === 37) {
+				direction = -1 // left, the snake will go left one div
+			} else if (e.keyCode === 40) {
+				direction = +width // down the snake head will instantly appear 10 divs below from the current div 
+			}
+		} 
+
+	up.addEventListener("click",()=>direction= -width ) 
+	bottom.addEventListener("click",()=>direction= +width ) 
+	left.addEventListener("click",()=>direction= -1 ) 
+	right.addEventListener("click",()=>direction= 1 )
+
+
+
+	 function replay() { 
+		 grid.innerHTML="" 
+		 score = 0 
+		 createBoard()  
+		 startGame()  
+		 popup.style.display = "none"; 
+	 }  
+
+
+	 
+	</script>
+	
+</body>
+
+
+</html>
+
